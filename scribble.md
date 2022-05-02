@@ -244,3 +244,121 @@ and this
 }
 
 to log in as an existing user.
+
+# 21.2.4 & 21.2.5
+
+Here we learned about authentication. This was fairly confusing but the main thing that tripped me up was the header. Make sure moving forward that the key is "Authorization" and the Value is "Bearer <insert token here>". The bearer bit was the part i missed. All of this is worth another read when it comes time to do the project.
+
+# 21.2.6
+
+A really insteresting one that added the ability to add thoughts, reactions and friends. First we went into the typeDefs.js and added this to the mutation.
+
+type Mutation {
+login(email: String!, password: String!): Auth
+addUser(username: String!, email: String!, password: String!): Auth
+addThought(thoughtText: String!): Thought
+addReaction(thoughtId: ID!, reactionBody: String!): Thought
+addFriend(friendId: ID!): User
+}
+
+Then we went into the resolvers and added the ability to add a thought like this.
+
+addThought: async (parent, args, context) => {
+if (context.user) {
+const thought = await Thought.create({
+...args,
+username: context.user.username,
+});
+
+        await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $push: { thoughts: thought._id } },
+          { new: true }
+        );
+
+        return thought;
+      }
+
+      throw new AuthenticationError("You need to be logged in!");
+    },
+
+      This for this in graphQL we added this.
+
+      mutation addThought($thoughtText: String!) {
+
+addThought(thoughtText: $thoughtText) {
+\_id
+thoughtText
+createdAt
+username
+reactionCount
+}
+}
+
+with the thoughtText variable passed in to modify the text making sure we were logged in via the header. Then we added a reaction by passing this into resolvers.js.
+
+addReaction: async (parent, { thoughtId, reactionBody }, context) => {
+if (context.user) {
+const updatedThought = await Thought.findOneAndUpdate(
+{ \_id: thoughtId },
+{
+$push: {
+reactions: { reactionBody, username: context.user.username },
+},
+},
+{ new: true, runValidators: true }
+);
+
+        return updatedThought;
+      }
+
+      throw new AuthenticationError("You need to be logged in!");
+    },
+
+Then we went into the graphQL and added this.
+
+    mutation addReaction($thoughtId: ID!, $reactionBody: String!) {
+
+addReaction(thoughtId: $thoughtId, reactionBody: $reactionBody) {
+\_id
+reactionCount
+reactions {
+\_id
+reactionBody
+createdAt
+username
+}
+}
+}
+
+We passed in a thoughtId which I had to look up to find a real one and then typed whatever we wanted into the reactionBody. Finally again since this is using context we had to make sure the header passed in an active token like before. Lastly we created the ability to add a friend like this in resolvers.js.
+
+addFriend: async (parent, { friendId }, context) => {
+if (context.user) {
+const updatedUser = await User.findOneAndUpdate(
+{ \_id: context.user.\_id },
+{ $addToSet: { friends: friendId } },
+{ new: true }
+).populate("friends");
+
+        return updatedUser;
+      }
+
+      throw new AuthenticationError("You need to be logged in!");
+    },
+
+Then we had to look up a vild user name and pass that in to this.
+
+mutation addFriend($friendId: ID!) {
+addFriend(friendId: $friendId) {
+\_id
+username
+friendCount
+friends {
+\_id
+username
+}
+}
+}
+
+So the friendId could have a valid ud tied to a username. Once again since this has context in it we had to make sure the header matched an active token tied to an id.
