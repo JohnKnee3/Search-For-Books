@@ -158,3 +158,89 @@ friends: [User]
 }
 
 The rest was testing the querys and basically setting up mega querys to grab everthing and then collapsing the data to parse through what you want all in graphql. The last thing we did was practice sending in a variable through graphQL as well. I saved both of these moving forward as I think they will remain useful. There is a ton of data here so coming back reading this may be helpful in terms of understandin graphQL.
+
+# 21.2.3
+
+We added the ability for a user to create an account and log in. First in typeDefs.js we added this to accept mutations.
+
+type Mutation {
+login(email: String!, password: String!): User
+addUser(username: String!, email: String!, password: String!): User
+}
+
+Then we went into resolvers.s and added this to create the ability to make a user.
+
+addUser: async (parent, args) => {
+const user = await User.create(args);
+
+return user;
+}
+
+This accepts the username, password and email and uses this info to make an account. Then in graphQL we added this.
+
+mutation {
+addUser(username:"tester", password:"test12345", email:"test@test.com") {
+\_id
+username
+email
+}
+}
+
+Then we switched it to variables.
+
+mutation addUser($username: String!, $password: String!, $email: String!) {
+addUser(username: $username, password: $password, email: $email) {
+\_id
+username
+email
+}
+}
+
+and passed in this.
+
+{
+"username": "tester2",
+"password": "test12345",
+"email": "test2@test.com"
+}
+
+Both of these created users just the second one is closer to what it will acutally look like once we have the front end hooked up. Finally up top we added this.
+
+const { AuthenticationError } = require('apollo-server-express');
+
+and then this in the login section.
+
+login: async (parent, { email, password }) => {
+const user = await User.findOne({ email });
+
+if (!user) {
+throw new AuthenticationError('Incorrect credentials');
+}
+
+const correctPw = await user.isCorrectPassword(password);
+
+if (!correctPw) {
+throw new AuthenticationError('Incorrect credentials');
+}
+
+return user;
+}
+
+to make sure we get tossed an error if the log in was not valid. Then using variables we went into graphQL and used.
+
+mutation login($email: String!, $password: String!) {
+login(email: $email, password: $password) {
+\_id
+username
+email
+}
+}
+
+and this
+
+{
+"email": "test2@test.com",
+"password": "test12345"
+}
+
+to log in as an existing user.
