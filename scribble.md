@@ -137,4 +137,24 @@ reactionBody
 }
 }
 
-# 21.1.5
+# 21.1.6
+
+Here we quickly added the new User type and updated the query to search by all users and one user and all thoughts and one thought like this.
+
+type Query {
+users: [User]
+user(username: String!): User
+thoughts(username: String): [Thought]
+thought(\_id: ID!): Thought
+}
+
+type User {
+\_id: ID
+username: String
+email: String
+friendCount: Int
+thoughts: [Thought]
+friends: [User]
+}
+
+The rest was testing the querys and basically setting up mega querys to grab everthing and then collapsing the data to parse through what you want all in graphql. The last thing we did was practice sending in a variable through graphQL as well. I saved both of these moving forward as I think they will remain useful. There is a ton of data here so coming back reading this may be helpful in terms of understandin graphQL.
