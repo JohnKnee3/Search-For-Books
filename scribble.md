@@ -362,3 +362,7 @@ username
 }
 
 So the friendId could have a valid ud tied to a username. Once again since this has context in it we had to make sure the header matched an active token tied to an id.
+
+# 21.3.3
+
+Got all the basic files in for react. We removed the package-lock.json right now which I found funny beacuase they claimed it will cause problems. I assume it will make it's way back once we get going.
