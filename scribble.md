@@ -366,3 +366,43 @@ So the friendId could have a valid ud tied to a username. Once again since this 
 # 21.3.3
 
 Got all the basic files in for react. We removed the package-lock.json right now which I found funny beacuase they claimed it will cause problems. I assume it will make it's way back once we get going.
+
+# 21.3.4
+
+Here we set up the app.js to include apollo. First we navigated to the root of client and ran this.
+
+npm i @apollo/client graphql
+
+Which installed the apollo/client and graphql. Then we went into the app and imported appllo like this.
+
+import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+
+Next we added an absolute path to our backend and created the variable client to create a new intance of the ApolloClient and the MemoryCache like this.
+
+const httpLink = createHttpLink({
+uri: 'http://localhost:3001/graphql',
+});
+
+const client = new ApolloClient({
+link: httpLink,
+cache: new InMemoryCache(),
+});
+
+Finally in the JSX return statement we wrapped everthing that was there in a <ApolloProvider client={client}></ApolloProvider> like this.
+
+function App() {
+return (
+<ApolloProvider client={client}>
+
+<div className="flex-column justify-flex-start min-100-vh">
+<Header />
+<div className="container">
+<Home />
+</div>
+<Footer />
+</div>
+</ApolloProvider>
+);
+}
+
+We are now about to set up a query to see if this works.
