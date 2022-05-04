@@ -510,3 +510,46 @@ Once all this is in the site displays. Next they claim we are going to remove th
 # 21.3.6
 
 set up the files to run on one terminal command by creating a root package.json installing concurrently and then setting up as few other things. This will be needed for the future to be able to set up all my react files.
+
+# 21.4.3
+
+Just discovered the client/package.json will break the module. Need to update the package.json to "react-router-dom": "^6.0.0",. But anyways this introduced ReactRouter which makes a SPA act like a multipage document. First we installed react-router with this `npm install react-router-dom` in the terminal and then we went into our app.js and imported it up top like this.
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+Next we imported links to all our other files that will be loaded when selected like this.
+
+import Login from './pages/Login';
+import NoMatch from './pages/NoMatch';
+import SingleThought from './pages/SingleThought';
+import Profile from './pages/Profile';
+import Signup from './pages/Signup';
+
+Finally we updtaed the app() to look like this.
+
+function App() {
+return (
+<ApolloProvider client={client}>
+<Router>
+<div className="flex-column justify-flex-start min-100-vh">
+<Header />
+<div className="container">
+<Routes>
+<Route path="/" element={<Home />} />
+<Route path="/login" element={<Login />} />
+<Route path="/signup" element={<Signup />} />
+<Route path="/profile" element={<Profile />} />
+<Route path="/thought" element={<SingleThought />} />
+
+              <Route path="*" element={<NoMatch />} />
+            </Routes>
+          </div>
+          <Footer />
+        </div>
+      </Router>
+    </ApolloProvider>
+
+);
+}
+
+Here we have several nested <Route>'s that will trigger the imported path when selected. These are all nested within <Routes> which is inside of <Router> which are all of the variables we imported up top. As is stands right now we can click on a page and be redirectd to it. But the fancy bi here is that if we hit back on the browser we will then be brought back to the page previous simulating a multi page site.
