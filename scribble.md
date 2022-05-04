@@ -564,6 +564,7 @@ import { Link } from "react-router-dom";
 
 const Header = () => {
 return (
+
 <header className="bg-secondary mb-4 py-2 flex-row align-center">
 <div className="container flex-row justify-space-between-lg justify-center align-center">
 <Link to="/">
@@ -593,6 +594,7 @@ return <h3>No Thoughts Yet</h3>;
 }
 
 return (
+
 <div>
 <h3>{title}</h3>
 {thoughts &&
@@ -644,6 +646,7 @@ const SingleThought = (props) => {
 const { id: thoughtId } = useParams();
 console.log("they made me do it", thoughtId);
 return (
+
 <div>
 <div className="card mb-3">
 <p className="card-header">
@@ -663,3 +666,88 @@ thought on createdAt
 export default SingleThought;
 
 As of right now we are only console.logging it but that will change in the future.
+
+# 21.4.5
+
+Here we got the single page to render and show it's reactions. First we added a new query to grab a single thought to the queries.js like this.
+
+export const QUERY_THOUGHT = gql` query thought($id: ID!) { thought(_id: $id) { _id thoughtText createdAt username reactionCount reactions { _id createdAt username reactionBody } } }`;
+
+Then went back to single thought and required it, set up it's function and added it to the JSX return statment like this.
+
+iimport React from "react";
+import { useParams } from "react-router-dom";
+import ReactionList from "../components/ReactionList";
+
+import { useQuery } from "@apollo/client";
+import { QUERY_THOUGHT } from "../utils/queries";
+
+const SingleThought = (props) => {
+const { id: thoughtId } = useParams();
+
+const { loading, data } = useQuery(QUERY_THOUGHT, {
+variables: { id: thoughtId },
+});
+
+const thought = data?.thought || {};
+
+if (loading) {
+return <div>Loading...</div>;
+}
+return (
+
+<div>
+<div className="card mb-3">
+<p className="card-header">
+<span style={{ fontWeight: 700 }} className="text-light">
+{thought.username}
+</span>{" "}
+thought on {thought.createdAt}
+</p>
+<div className="card-body">
+<p>{thought.thoughtText}</p>
+</div>
+</div>
+
+      {thought.reactionCount > 0 && (
+        <ReactionList reactions={thought.reactions} />
+      )}
+    </div>
+
+);
+};
+
+export default SingleThought;
+
+As you can see at the bottom we set up a spot for reactions so we had to do to components and create a ReactionList folder with an index.js like this.
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+const ReactionList = ({ reactions }) => {
+return (
+
+<div className="card mb-3">
+<div className="card-header">
+<span className="text-light">Reactions</span>
+</div>
+<div className="card-body">
+{reactions &&
+reactions.map((reaction) => (
+<p className="pill mb-3" key={reaction._id}>
+{reaction.reactionBody} {"// "}
+<Link
+to={`/profile/${reaction.username}`}
+style={{ fontWeight: 700 }} >
+{reaction.username} on {reaction.createdAt}
+</Link>
+</p>
+))}
+</div>
+</div>
+);
+};
+
+export default ReactionList;
+
+Once in all single comments and reactions display. You can also click on the username in the reaction to be redirected to their userprofile page. Speaking of the next step is to get that user profile page working.
