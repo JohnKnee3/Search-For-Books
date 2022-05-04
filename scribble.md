@@ -406,3 +406,103 @@ return (
 }
 
 We are now about to set up a query to see if this works.
+
+# 21.3.5
+
+Here we linked the thoughts data from the database to the actual page. First in the client/src folder we created a utils folder and added queries.js. In this we added our first QUERY_THOUGHTS query to the program and exported it like this.
+
+import { gql } from '@apollo/client';
+
+export const QUERY_THOUGHTS = gql` query thoughts($username: String) { thoughts(username: $username) { _id thoughtText createdAt username reactionCount reactions { _id createdAt username reactionBody } } }`;
+
+We aslo had to import and then wrap the entire query in the gql variable. Next we went into Home.js and required uesQuery and the newly created QUERY_THOUGHTS up top and then updated the Home() to look like this.
+
+import { useQuery } from '@apollo/client';
+import { QUERY_THOUGHTS } from '../utils/queries';
+
+const Home = () => {
+// use useQuery hook to make query request
+const { loading, data } = useQuery(QUERY_THOUGHTS);
+const thoughts = data?.thoughts || [];
+console.log(thoughts);
+
+return (
+
+<main>
+<div className='flex-row justify-space-between'>
+<div className='col-12 mb-3'>{/_ PRINT THOUGHT LIST _/}</div>
+</div>
+</main>
+);
+};
+
+We also had to toss in this data?.thoughts || [] to say if data is real then add it if not send back an empty array. Next we fired up the backend from the server terminal with `npm run watch` and the client terminal with `npm start`. Checking the console we see an empty array as we are waiting for the data to appear and then a populated array once the data is retreived from the back-end. Finally we went into the components and created a way to display this info with a file called ThougtList. In this we added this.
+
+import React from "react";
+
+const ThoughtList = ({ thoughts, title }) => {
+if (!thoughts.length) {
+return <h3>No Thoughts Yet</h3>;
+}
+
+return (
+
+<div>
+<h3>{title}</h3>
+{thoughts &&
+thoughts.map((thought) => (
+<div key={thought._id} className="card mb-3">
+<p className="card-header">
+{thought.username}
+thought on {thought.createdAt}
+</p>
+<div className="card-body">
+<p>{thought.thoughtText}</p>
+<p className="mb-0">
+Reactions: {thought.reactionCount} || Click to{" "}
+{thought.reactionCount ? "see" : "start"} the discussion!
+</p>
+</div>
+</div>
+))}
+</div>
+);
+};
+
+export default ThoughtList;
+
+Which was nothing more than a copy paste to get things displayed. Then we went back into the Home.js and required this new folder up top and it to the like this.
+
+import React from "react";
+import ThoughtList from "../components/ThoughtList";
+import { useQuery } from "@apollo/client";
+import { QUERY_THOUGHTS } from "../utils/queries";
+
+const Home = () => {
+// use useQuery hook to make query request
+const { loading, data } = useQuery(QUERY_THOUGHTS);
+const thoughts = data?.thoughts || [];
+console.log(thoughts);
+
+return (
+
+<main>
+<div className="flex-row justify-space-between">
+<div className="col-12 mb-3">
+{loading ? (
+<div>Loading...</div>
+) : (
+<ThoughtList
+              thoughts={thoughts}
+              title="Some Feed for Thought(s)..."
+            />
+)}
+</div>
+</div>
+</main>
+);
+};
+
+export default Home;
+
+Once all this is in the site displays. Next they claim we are going to remove the need to have 2 terminals running to make this page work.
