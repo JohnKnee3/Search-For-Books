@@ -506,3 +506,7 @@ return (
 export default Home;
 
 Once all this is in the site displays. Next they claim we are going to remove the need to have 2 terminals running to make this page work.
+
+# 21.3.6
+
+set up the files to run on one terminal command by creating a root package.json installing concurrently and then setting up as few other things. This will be needed for the future to be able to set up all my react files.
