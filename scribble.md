@@ -751,3 +751,132 @@ style={{ fontWeight: 700 }} >
 export default ReactionList;
 
 Once in all single comments and reactions display. You can also click on the username in the reaction to be redirected to their userprofile page. Speaking of the next step is to get that user profile page working.
+
+# 21.4.6
+
+More version control issues. This time I discovered that the "?" in the app.js for the profile page is incorrect. That is old version 5 syntax yet this is written with mostly version 6. With all that being said this last page simply set up the display of the userPage. First we slapped a new query in there like this.
+
+export const QUERY_USER = gql` query user($username: String!) { user(username: $username) { _id username email friendCount friends { _id username } thoughts { _id thoughtText createdAt reactionCount } } }`;
+
+Then went into Profile.js and updated it so it looked like this.
+
+import { useParams } from 'react-router-dom';
+
+import ThoughtList from '../components/ThoughtList';
+
+import { useQuery } from '@apollo/client';
+import { QUERY_USER } from '../utils/queries';
+
+onst Profile = () => {
+const { username: userParam } = useParams();
+
+const { loading, data } = useQuery(QUERY_USER, {
+variables: { username: userParam }
+});
+
+const user = data?.user || {};
+
+if (loading) {
+return <div>Loading...</div>;
+}
+
+return (
+<div>
+<div className="flex-row mb-3">
+<h2 className="bg-dark text-secondary p-3 display-inline-block">
+Viewing {user.username}'s profile.
+</h2>
+</div>
+
+      <div className="flex-row justify-space-between mb-3">
+        <div className="col-12 mb-3 col-lg-8">
+          <ThoughtList thoughts={user.thoughts} title={`${user.username}'s thoughts...`} />
+        </div>
+      </div>
+    </div>
+
+);
+};
+
+Lastly we wanted to make a friends list so we made a new component called FriendsList/index.js and added this in.
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const FriendList = ({ friendCount, username, friends }) => {
+if (!friends || !friends.length) {
+return <p className="bg-dark text-light p-3">{username}, make some friends!</p>;
+}
+
+return (
+<div>
+<h5>
+{username}'s {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
+</h5>
+{friends.map(friend => (
+<button className="btn w-100 display-block mb-2" key={friend._id}>
+<Link to={`/profile/${friend.username}`}>{friend.username}</Link>
+</button>
+))}
+</div>
+);
+};
+
+export default FriendList;
+
+Finally we revivisited the Profile.js to iport it and upadted the JSX return so everything looked like this.
+
+import React from "react";
+import { useParams } from "react-router-dom";
+
+import ThoughtList from "../components/ThoughtList";
+import FriendList from "../components/FriendList";
+
+import { useQuery } from "@apollo/client";
+import { QUERY_USER } from "../utils/queries";
+
+const Profile = (props) => {
+const { username: userParam } = useParams();
+
+const { loading, data } = useQuery(QUERY_USER, {
+variables: { username: userParam },
+});
+
+const user = data?.user || {};
+
+if (loading) {
+return <div>Loading...</div>;
+}
+
+return (
+<div>
+<div className="flex-row mb-3">
+<h2 className="bg-dark text-secondary p-3 display-inline-block">
+Viewing {user.username}'s profile.
+</h2>
+</div>
+
+      <div className="flex-row justify-space-between mb-3">
+        <div className="col-12 mb-3 col-lg-8">
+          <ThoughtList
+            thoughts={user.thoughts}
+            title={`${user.username}'s thoughts...`}
+          />
+        </div>
+
+        <div className="col-12 col-lg-3 mb-3">
+          <FriendList
+            username={user.username}
+            friendCount={user.friendCount}
+            friends={user.friends}
+          />
+        </div>
+      </div>
+    </div>
+
+);
+};
+
+export default Profile;
+
+Again to get the profile page to show up we had to remove the ? from the Profile route in App.js.
