@@ -531,6 +531,7 @@ function App() {
 return (
 <ApolloProvider client={client}>
 <Router>
+
 <div className="flex-column justify-flex-start min-100-vh">
 <Header />
 <div className="container">
@@ -553,3 +554,112 @@ return (
 }
 
 Here we have several nested <Route>'s that will trigger the imported path when selected. These are all nested within <Routes> which is inside of <Router> which are all of the variables we imported up top. As is stands right now we can click on a page and be redirectd to it. But the fancy bi here is that if we hit back on the browser we will then be brought back to the page previous simulating a multi page site.
+
+# 21.4.4
+
+Here we met the link feature of react-router. First we went into the header and updated it to import the link and use it like this.
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+const Header = () => {
+return (
+<header className="bg-secondary mb-4 py-2 flex-row align-center">
+<div className="container flex-row justify-space-between-lg justify-center align-center">
+<Link to="/">
+<h1>Deep Thoughts</h1>
+</Link>
+
+        <nav className="text-center">
+          <Link to="/login">Login</Link>
+          <Link to="/signup">Signup</Link>
+        </nav>
+      </div>
+    </header>
+
+);
+};
+
+export default Header;
+
+Here we added a login and a signup page and linked out to them using the iported variable. Then we went into ThoughtList and got the bones for the Links set up there like this.
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+const ThoughtList = ({ thoughts, title }) => {
+if (!thoughts.length) {
+return <h3>No Thoughts Yet</h3>;
+}
+
+return (
+<div>
+<h3>{title}</h3>
+{thoughts &&
+thoughts.map((thought) => (
+<div key={thought._id} className="card mb-3">
+<p className="card-header">
+<Link
+to={`/profile/${thought.username}`}
+style={{ fontWeight: 700 }}
+className="text-light" >
+{thought.username}
+</Link>{" "}
+thought on {thought.createdAt}
+</p>
+<div className="card-body">
+<Link to={`/thought/${thought._id}`}>
+<p>{thought.thoughtText}</p>
+<p className="mb-0">
+Reactions: {thought.reactionCount} || Click to{" "}
+{thought.reactionCount ? "see" : "start"} the discussion!
+</p>
+</Link>
+</div>
+</div>
+))}
+</div>
+);
+};
+
+export default ThoughtList;
+
+Next we had to go update the app.js to allow links like this.
+
+<Route
+path="/profile/:username?"
+element={<Profile />}
+/>
+<Route
+path="/thought/:id"
+element={<SingleThought />}
+/>
+
+Here we added the variables to the path so when we click it the id or username will show up top in the url. Finally we went into singThought to pull the id from the url with useParams like this.
+
+import React from "react";
+import { useParams } from "react-router-dom";
+
+const SingleThought = (props) => {
+const { id: thoughtId } = useParams();
+console.log("they made me do it", thoughtId);
+return (
+<div>
+<div className="card mb-3">
+<p className="card-header">
+<span style={{ fontWeight: 700 }} className="text-light">
+Username
+</span>{" "}
+thought on createdAt
+</p>
+<div className="card-body">
+<p>Thought Text</p>
+</div>
+</div>
+</div>
+);
+};
+
+export default SingleThought;
+
+As of right now we are only console.logging it but that will change in the future.
