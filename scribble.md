@@ -1107,3 +1107,92 @@ Add Friend
 )}
 
 When we load our own personal page we do not use useParam so as a result the button will hide. Next up is addThought.
+
+# 21.6.4
+
+Here we created the form and then imported it into the Home.js and the Profile.js. First we went into the components folders and created ThoughtForm/inndex.js. In that we initally just put this as a template.
+
+import React, { useState } from 'react';
+
+const ThoughtForm = () => {
+return (
+<div>
+<p className="m-0">
+Character Count: 0/280
+</p>
+<form className="flex-row justify-center justify-space-between-md align-stretch">
+<textarea
+          placeholder="Here's a new thought..."
+          className="form-input col-12 col-md-9"
+        ></textarea>
+<button className="btn col-12 col-md-3" type="submit">
+Submit
+</button>
+</form>
+</div>
+);
+};
+
+export default ThoughtForm;
+
+Then we went into the Home.js and Profile.js and imported them up top like this.
+
+import ThoughtForm from '../components/ThoughtForm';
+
+Then we snuck this into the Home.js to show only if logged in like this.
+
+{loggedIn && (
+<div className="col-12 mb-3">
+<ThoughtForm />
+</div>
+)}
+
+Then in the profile page we added this
+
+<div className="mb-3">{!userParam && <ThoughtForm />}</div>
+
+to the bottom of the JSX above the last div. We did not need to conditionally render it because this page only shows up if logged in. Next we went back into the ThoughtForm to give it some functionality. First we set up these 2 state variable thoughtText and characterCount. Then we added the value of thoughtText to the text area and called the function handlChange. Then we had to make handleChange which lets you type as long as the character count is below 280. Next we added this to the <p> so the can see. Finally we added the handleFormSubmit function to the button and as of now only made it so when we click it the entire form will clear. Everything together looks like this.
+
+import React, { useState } from "react";
+
+const ThoughtForm = () => {
+const [thoughtText, setText] = useState("");
+const [characterCount, setCharacterCount] = useState(0);
+
+const handleChange = (event) => {
+if (event.target.value.length <= 280) {
+setText(event.target.value);
+setCharacterCount(event.target.value.length);
+}
+};
+
+const handleFormSubmit = async (event) => {
+event.preventDefault();
+setText("");
+setCharacterCount(0);
+};
+
+return (
+<div>
+<p className={`m-0 ${characterCount === 280 ? "text-error" : ""}`}>
+Character Count: {characterCount}/280
+</p>
+<form
+        className="flex-row justify-center justify-space-between-md align-stretch"
+        onSubmit={handleFormSubmit}
+      >
+<textarea
+          placeholder="Here's a new thought..."
+          value={thoughtText}
+          className="form-input col-12 col-md-9"
+          onChange={handleChange}
+        ></textarea>
+<button className="btn col-12 col-md-3" type="submit">
+Submit
+</button>
+</form>
+</div>
+);
+};
+
+export default ThoughtForm;
