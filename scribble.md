@@ -1116,6 +1116,7 @@ import React, { useState } from 'react';
 
 const ThoughtForm = () => {
 return (
+
 <div>
 <p className="m-0">
 Character Count: 0/280
@@ -1142,6 +1143,7 @@ import ThoughtForm from '../components/ThoughtForm';
 Then we snuck this into the Home.js to show only if logged in like this.
 
 {loggedIn && (
+
 <div className="col-12 mb-3">
 <ThoughtForm />
 </div>
@@ -1173,6 +1175,7 @@ setCharacterCount(0);
 };
 
 return (
+
 <div>
 <p className={`m-0 ${characterCount === 280 ? "text-error" : ""}`}>
 Character Count: {characterCount}/280
@@ -1196,3 +1199,92 @@ Submit
 };
 
 export default ThoughtForm;
+
+# 21.6.5
+
+First we went into the mutations and added ADD_THOUGHT like this.
+
+export const ADD_THOUGHT = gql` mutation addThought($thoughtText: String!) { addThought(thoughtText: $thoughtText) { _id thoughtText createdAt username reactionCount reactions { _id } } }`;
+
+Then we hung out in ThoughtForm for a bit. First we imported the ability to add thought and declared in in the function like this.
+
+import { useMutation } from '@apollo/client';
+import { ADD_THOUGHT } from '../../utils/mutations';
+
+const [addThought, { error }] = useMutation(ADD_THOUGHT);
+
+Then we upated the handleFormSubmit to do more than just make everything empty like this.
+
+const handleFormSubmit = async event => {
+event.preventDefault();
+
+try {
+// add thought to database
+await addThought({
+variables: { thoughtText }
+});
+
+    // clear form value
+    setText('');
+    setCharacterCount(0);
+
+} catch (e) {
+console.error(e);
+}
+};
+
+Finally we went into the <p> and added the ability to display the error like this.
+
+<p className={`m-0 ${characterCount === 280 || error ? 'text-error' : ''}`}>
+  Character Count: {characterCount}/280
+  {error && <span className="ml-2">Something went wrong...</span>}
+</p>
+
+Once that happened we tested the error message which worked fine but the page was not displaying the new thought without a refresh which defeats the purpose of this. So what we had to do wass update the addThought = useMutation from above to inlcue the ability to look at the new thoughts array and query it. Once it did that it wrote the array on the page. We also had to import the QUERY_THOUGHTS. When it is all said it done it looked like this.
+
+import { QUERY_THOUGHTS } from '../../utils/queries';
+
+const [addThought, { error }] = useMutation(ADD_THOUGHT, {
+update(cache, { data: { addThought } }) {
+// read what's currently in the cache
+const { thoughts } = cache.readQuery({ query: QUERY_THOUGHTS });
+
+    // prepend the newest thought to the front of the array
+    cache.writeQuery({
+      query: QUERY_THOUGHTS,
+      data: { thoughts: [addThought, ...thoughts] }
+    });
+
+}
+});
+
+Once that was in adding from the main page worked yet adding from the profile page did not. It adds to the DB and the homepage but requires a refresh to show up onto the profile page. The main issue is the profile page uses QUERY_ME and not QUERY_THOUGHTS. To fix this we had to import QUERY_ME into the file and then wrap it in a TRY because QUERY_ME relies on QUERY_THOUGHTS TO exsist so if it fails no big deal, it will just try again. The updated code looks like this.
+
+import { QUERY_THOUGHTS, QUERY_ME } from '../../utils/queries';
+
+const [addThought, { error }] = useMutation(ADD_THOUGHT, {
+update(cache, { data: { addThought } }) {
+
+      // could potentially not exist yet, so wrap in a try/catch
+    try {
+      // update me array's cache
+      const { me } = cache.readQuery({ query: QUERY_ME });
+      cache.writeQuery({
+        query: QUERY_ME,
+        data: { me: { ...me, thoughts: [...me.thoughts, addThought] } },
+      });
+    } catch (e) {
+      console.warn("First thought insertion by user!")
+    }
+
+    // update thought array's cache
+    const { thoughts } = cache.readQuery({ query: QUERY_THOUGHTS });
+    cache.writeQuery({
+      query: QUERY_THOUGHTS,
+      data: { thoughts: [addThought, ...thoughts] },
+    });
+
+}
+});
+
+Next up we will be working on the reaction page.
