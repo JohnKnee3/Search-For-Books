@@ -1021,3 +1021,36 @@ const client = new ApolloClient({
 link: authLink.concat(httpLink),
 cache: new InMemoryCache(),
 });
+
+# 21.5.5
+
+We added the ability to log out. First we went into the Header/index.js component and imported Auth like this.
+
+import Auth from '../../utils/auth';
+
+Then we went into the header function and called the logout function from the Auth file like this.
+
+const logout = event => {
+event.preventDefault();
+Auth.logout();
+};
+
+Finally we went into the return JSX and updated it to render the page based on whether log in is true or false and assigned the logout() to the onClick event for the logout <a>tag.
+
+<nav className="text-center">
+  {Auth.loggedIn() ? (
+    <>
+      <Link to="/profile">Me</Link>
+      <a href="/" onClick={logout}>
+        Logout
+      </a>
+    </>
+  ) : (
+    <>
+      <Link to="/login">Login</Link>
+      <Link to="/signup">Signup</Link>
+    </>
+  )}
+</nav>
+
+Now we are going to work on loading that Me page.
