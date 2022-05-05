@@ -1288,3 +1288,77 @@ update(cache, { data: { addThought } }) {
 });
 
 Next up we will be working on the reaction page.
+
+# 21.6.6
+
+We added the ability to create a reaction. This was very similar to thougths we just had to pass in a thoughtId. The entire ReactionForm compnent looks like this.
+
+import React, { useState } from "react";
+
+import { useMutation } from "@apollo/client";
+import { ADD_REACTION } from "../../utils/mutations";
+
+const ReactionForm = ({ thoughtId }) => {
+const [reactionBody, setBody] = useState("");
+const [characterCount, setCharacterCount] = useState(0);
+const [addReaction, { error }] = useMutation(ADD_REACTION);
+
+const handleChange = (event) => {
+if (event.target.value.length <= 280) {
+setBody(event.target.value);
+setCharacterCount(event.target.value.length);
+}
+};
+
+// submit form
+const handleFormSubmit = async (event) => {
+event.preventDefault();
+
+    try {
+      await addReaction({
+        variables: { reactionBody, thoughtId },
+      });
+
+      // clear form value
+      setBody("");
+      setCharacterCount(0);
+    } catch (e) {
+      console.error(e);
+    }
+
+};
+
+return (
+<div>
+<p
+className={`m-0 ${characterCount === 280 || error ? "text-error" : ""}`} >
+Character Count: {characterCount}/280
+{error && <span className="ml-2">Something went wrong...</span>}
+</p>
+<form
+        className="flex-row justify-center justify-space-between-md align-stretch"
+        onSubmit={handleFormSubmit}
+      >
+<textarea
+          placeholder="Leave a reaction to this thought..."
+          value={reactionBody}
+          className="form-input col-12 col-md-9"
+          onChange={handleChange}
+        ></textarea>
+
+        <button className="btn col-12 col-md-3" type="submit">
+          Submit
+        </button>
+      </form>
+    </div>
+
+);
+};
+
+export default ReactionForm;
+
+Then we had to go into mutations and get that going like this.
+
+export const ADD_REACTION = gql` mutation addReaction($thoughtId: ID!, $reactionBody: String!) { addReaction(thoughtId: $thoughtId, reactionBody: $reactionBody) { _id reactionCount reactions { _id reactionBody createdAt username } } }`;
+
+That about sums it up. Next stop Heroku.
