@@ -1054,3 +1054,7 @@ Finally we went into the return JSX and updated it to render the page based on w
 </nav>
 
 Now we are going to work on loading that Me page.
+
+# 21.5.6
+
+Here we set up the query to look for me. First we got the firends list page to display on the main page if logged in using our basic query. Then we used our full query to diplay the users profile page. A ton of stuff here worth coming back to.
