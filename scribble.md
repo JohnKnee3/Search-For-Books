@@ -1058,3 +1058,52 @@ Now we are going to work on loading that Me page.
 # 21.5.6
 
 Here we set up the query to look for me. First we got the firends list page to display on the main page if logged in using our basic query. Then we used our full query to diplay the users profile page. A ton of stuff here worth coming back to.
+
+# 21.6.3
+
+Here we created a buttong to add a friend. First we went in to mutations.js to and added this.
+
+export const ADD_FRIEND = gql` mutation addFriend($id: ID!) { addFriend(friendId: $id) { _id username friendCount friends { _id username } } }`;
+
+Next we hung out in Profile.js for a while to hook everyting up. First we imported the ADD_FRIEND mutation up top like this.
+
+import { ADD_FRIEND } from '../utils/mutations';
+import { useQuery, useMutation } from '@apollo/client';
+
+Then we dustructured the mutation above the return statement so we can use it in the button like this.
+
+const [addFriend] = useMutation(ADD_FRIEND);
+
+Next we jumped down into the JSX and made it so the button appears on the profile page and called a handlesClick function like this.
+
+<div className="flex-row mb-3">
+  <h2 className="bg-dark text-secondary p-3 display-inline-block">
+    Viewing {userParam ? `${user.username}'s` : 'your'} profile.
+  </h2>
+
+  <button className="btn ml-auto" onClick={handleClick}>
+    Add Friend
+  </button>
+</div>
+
+Then we made the handleClick function above the return statement like this.
+
+const handleClick = async () => {
+try {
+await addFriend({
+variables: { id: user.\_id }
+});
+} catch (e) {
+console.error(e);
+}
+};
+
+Now this will have the add friend button on every page even our own. So we went back into the JSX one last time to edit the button so that if the useParam gets used then it will display the button like this.
+
+{userParam && (
+<button className="btn ml-auto" onClick={handleClick}>
+Add Friend
+</button>
+)}
+
+When we load our own personal page we do not use useParam so as a result the button will hide. Next up is addThought.
