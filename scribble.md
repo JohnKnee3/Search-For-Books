@@ -781,6 +781,7 @@ return <div>Loading...</div>;
 }
 
 return (
+
 <div>
 <div className="flex-row mb-3">
 <h2 className="bg-dark text-secondary p-3 display-inline-block">
@@ -809,6 +810,7 @@ return <p className="bg-dark text-light p-3">{username}, make some friends!</p>;
 }
 
 return (
+
 <div>
 <h5>
 {username}'s {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
@@ -849,6 +851,7 @@ return <div>Loading...</div>;
 }
 
 return (
+
 <div>
 <div className="flex-row mb-3">
 <h2 className="bg-dark text-secondary p-3 display-inline-block">
@@ -880,3 +883,44 @@ Viewing {user.username}'s profile.
 export default Profile;
 
 Again to get the profile page to show up we had to remove the ? from the Profile route in App.js.
+
+# 21.5.3
+
+Here we set up the sign up page and login page to access the back end and create a user and return a JWT. First we created the file client/src/utils/mutations.js where we set up our LOGIN_USER and ADD_USER mutations like this.
+
+import { gql } from "@apollo/client";
+
+export const LOGIN_USER = gql` mutation login($email: String!, $password: String!) { login(email: $email, password: $password) { token user { _id username } } }`;
+
+export const ADD_USER = gql` mutation addUser($username: String!, $email: String!, $password: String!) { addUser(username: $username, email: $email, password: $password) { token user { _id username } } }`;
+
+Then we went into Signup.js and imported the ADD_USER mutation up top and set it to a const like this.
+
+import { useMutation } from '@apollo/client';
+import { ADD_USER } from '../utils/mutations';
+
+const [addUser, { error }] = useMutation(ADD_USER);
+
+Next we updated the handleFormSubmit to talk to the server like this.
+
+/ submit form (notice the async!)
+const handleFormSubmit = async event => {
+event.preventDefault();
+
+// use try/catch instead of promises to handle errors
+try {
+// execute addUser mutation and pass in variable data from form
+const { data } = await addUser({
+variables: { ...formState }
+});
+console.log(data);
+} catch (e) {
+console.error(e);
+}
+};
+
+This uses try...catch to go and talk to the back end to create a user then comeback with the requested information including username, email and token. Lastly we added error handling in the actual JSX return since we have a destructured error in our variable up top. Below the </form> we added this.
+
+{error && <div>Sign up failed</div>}.
+
+Then we went in and did the same thing for the login page.
