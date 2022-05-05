@@ -924,3 +924,100 @@ This uses try...catch to go and talk to the back end to create a user then comeb
 {error && <div>Sign up failed</div>}.
 
 Then we went in and did the same thing for the login page.
+
+# 21.5.4
+
+Here we install jwt decode and an auth file in the utils folder that has this.
+
+import decode from "jwt-decode";
+
+class AuthService {
+// retrieve data saved in token
+getProfile() {
+return decode(this.getToken());
+}
+
+// check if the user is still logged in
+loggedIn() {
+// Checks if there is a saved token and it's still valid
+const token = this.getToken();
+// use type coersion to check if token is NOT undefined and the token is NOT expired
+return !!token && !this.isTokenExpired(token);
+}
+
+// check if the token has expired
+isTokenExpired(token) {
+try {
+const decoded = decode(token);
+if (decoded.exp < Date.now() / 1000) {
+return true;
+} else {
+return false;
+}
+} catch (err) {
+return false;
+}
+}
+
+// retrieve token from localStorage
+getToken() {
+// Retrieves the user token from localStorage
+return localStorage.getItem("id_token");
+}
+
+// set token to localStorage and reload page to homepage
+login(idToken) {
+// Saves user token to localStorage
+localStorage.setItem("id_token", idToken);
+
+    window.location.assign("/");
+
+}
+
+// clear token from localStorage and force logout with reload
+logout() {
+// Clear user token and profile data from localStorage
+localStorage.removeItem("id_token");
+// this will reload the page and reset the state of the application
+window.location.assign("/");
+}
+}
+
+export default new AuthService();
+
+This seems very boiler plate and will most likely be used in future projects. Then we updated the Signup.js and the Login.js to include the new Auth and the ability to toss the token into local storage like this.
+
+import Auth from '../utils/auth';
+
+try {
+const { data } = await addUser({
+variables: { ...formState }
+});
+
+Auth.login(data.addUser.token);
+} catch (e) {
+console.error(e);
+}
+
+Finally we went into the app.js to retrieve the token anytime we do we make a request with GraphQL buy first importing it.
+
+import { setContext } from '@apollo/client/link/context';
+
+Then adding this authLink function to grab the token from local storage.
+
+const authLink = setContext((\_, { headers }) => {
+const token = localStorage.getItem('id_token');
+return {
+headers: {
+...headers,
+authorization: token ? `Bearer ${token}` : '',
+},
+};
+});
+
+Finally updated the client so we can attach the token to the http link like this.
+
+const client = new ApolloClient({
+link: authLink.concat(httpLink),
+cache: new InMemoryCache(),
+});
