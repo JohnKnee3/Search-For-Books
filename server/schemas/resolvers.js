@@ -1,7 +1,10 @@
+// const { AuthenticationError } = require("apollo-server-express");
+const { User } = require("../models");
+
 const resolvers = {
   Query: {
-    helloWorld: () => {
-      return "Hello World!";
+    users: async () => {
+      return User.find();
     },
   },
 };
