@@ -156,8 +156,8 @@ const SearchBooks = () => {
               </Card>
             );
           })}
+          {error && <div>Save Failed</div>}
         </CardColumns>
-        {error && <div>Save Failed</div>}
       </Container>
     </>
   );
