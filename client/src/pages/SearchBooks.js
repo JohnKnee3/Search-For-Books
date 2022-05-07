@@ -8,11 +8,15 @@ import {
   Card,
   CardColumns,
 } from "react-bootstrap";
+
 import { useMutation } from "@apollo/client";
+
 import Auth from "../utils/auth";
+
+import { searchGoogleBooks } from "../utils/API";
+
 import { saveBookIds, getSavedBookIds } from "../utils/localStorage";
 import { SAVE_BOOK } from "../utils/mutations";
-import { searchGoogleBooks } from "../utils/API";
 
 const SearchBooks = () => {
   // create state for holding returned google api data
@@ -66,7 +70,7 @@ const SearchBooks = () => {
   // create function to handle saving a book to our database
   const handleSaveBook = async (bookId) => {
     // find the book in `searchedBooks` state by the matching id
-    const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
+    const bookInput = searchedBooks.find((book) => book.bookId === bookId);
 
     // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
@@ -76,10 +80,10 @@ const SearchBooks = () => {
     }
 
     try {
-      await saveBook({ input: { ...bookToSave } });
+      await saveBook({ variables: { input: { ...bookInput } } });
 
       // if book successfully saves to user's account, save book id to state
-      setSavedBookIds([...savedBookIds, bookToSave.bookId]);
+      setSavedBookIds([...savedBookIds, bookInput.bookId]);
     } catch (err) {
       console.error(err);
     }
