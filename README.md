@@ -12,7 +12,7 @@ This is a website that users can use to browse books, save books, view their sav
 
 ## Usage
 
-To use this page simply click on the <a href="https://johnknee3.github.io/React-Portfolio/">Heroku link here</a>.
+To use this page simply click on the <a href="https://afternoon-fjord-78036.herokuapp.com/">Heroku link here</a>.
 
 ## Questions
 
