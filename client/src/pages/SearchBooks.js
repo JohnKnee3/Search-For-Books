@@ -21,6 +21,7 @@ import { SAVE_BOOK } from "../utils/mutations";
 const SearchBooks = () => {
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
+
   // create state for holding our search field data
   const [searchInput, setSearchInput] = useState("");
 
@@ -61,6 +62,7 @@ const SearchBooks = () => {
       }));
 
       setSearchedBooks(bookData);
+
       setSearchInput("");
     } catch (err) {
       console.error(err);
@@ -80,7 +82,7 @@ const SearchBooks = () => {
     }
 
     try {
-      await saveBook({ variables: { input: { ...bookInput } } });
+      await saveBook({ variables: { input: bookInput } });
 
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookInput.bookId]);
